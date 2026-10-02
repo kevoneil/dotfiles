@@ -149,7 +149,18 @@ fi
 # immediately without re-running this script.
 echo "🔌 Wiring LazyVim's plugin search to $SCRIPT_DIR/.config/nvim/lua/plugins..."
 mkdir -p "$HOME/.config/nvim/lua/config"
-sed "s|__DOTFILES_NVIM_DIR__|$SCRIPT_DIR/.config/nvim|g" \
+
+# Store the dotfiles path relative to $HOME (not the full absolute path),
+# so the generated lazy.lua resolves it via $HOME at runtime instead of
+# baking in the username of whoever ran this install script.
+if [[ "$SCRIPT_DIR" == "$HOME"/* ]]; then
+  DOTFILES_NVIM_RELATIVE="${SCRIPT_DIR#"$HOME"/}/.config/nvim"
+else
+  echo "⚠️  Dotfiles repo is not under \$HOME ($SCRIPT_DIR); LazyVim plugin import may not resolve correctly for other users on this machine."
+  DOTFILES_NVIM_RELATIVE=""
+fi
+
+sed "s|__DOTFILES_NVIM_RELATIVE__|$DOTFILES_NVIM_RELATIVE|g" \
   "$SCRIPT_DIR/.config/nvim/lua/config/lazy.lua" >"$HOME/.config/nvim/lua/config/lazy.lua"
 echo "✅ LazyVim config now imports plugins from the dotfiles repo."
 

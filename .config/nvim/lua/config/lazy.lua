@@ -21,9 +21,16 @@ vim.opt.rtp:prepend(lazypath)
 -- copy under ~/.config/nvim/lua/plugins. Adding it to the runtimepath lets
 -- `{ import = "plugins" }` below resolve lua/plugins/*.lua straight from the
 -- dotfiles checkout, so edits there take effect without re-copying/restarting
--- install.sh. The path below is substituted by install.sh at setup time with
--- the actual path to <dotfiles repo>/.config/nvim.
-local dotfiles_nvim = "__DOTFILES_NVIM_DIR__"
+-- install.sh.
+--
+-- The path is derived from $HOME at runtime (not baked in as an absolute,
+-- user-specific string) plus a relative suffix substituted by install.sh at
+-- setup time — e.g. "dotfiles/.config/nvim" if the repo lives at
+-- ~/dotfiles. This way the generated file works for whichever user actually
+-- runs it, instead of hardcoding the username of whoever ran install.sh.
+local dotfiles_nvim_relative = "__DOTFILES_NVIM_RELATIVE__"
+local home = os.getenv("HOME") or ""
+local dotfiles_nvim = (home ~= "" and dotfiles_nvim_relative ~= "") and (home .. "/" .. dotfiles_nvim_relative) or ""
 if dotfiles_nvim ~= "" and (vim.uv or vim.loop).fs_stat(dotfiles_nvim) then
   vim.opt.rtp:prepend(dotfiles_nvim)
 end
