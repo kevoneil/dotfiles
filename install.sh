@@ -90,9 +90,27 @@ else
 fi
 
 # 5. Install Neovim & Dependencies
+echo "🍺 Updating Homebrew..."
+brew update
+
 echo "⚡ Installing Neovim and foundational dependencies..."
 # ripgrep, fd, and git are required for LazyVim's telescope fuzzy finding
-brew install neovim ripgrep fd git
+# lazygit: terminal UI for git, yazi: terminal file manager, nvm: Node version manager
+brew install neovim ripgrep fd git lazygit yazi nvm
+
+# nvm (installed via Homebrew) isn't auto-wired into the shell like other
+# formulae — it needs NVM_DIR set and nvm.sh sourced manually.
+NVM_BREW_PREFIX="$(brew --prefix nvm)"
+if ! grep -q 'NVM_DIR' "$HOME/.zprofile" 2>/dev/null; then
+  {
+    echo 'export NVM_DIR="$HOME/.nvm"'
+    echo "[ -s \"$NVM_BREW_PREFIX/nvm.sh\" ] && \\. \"$NVM_BREW_PREFIX/nvm.sh\""
+  } >>"$HOME/.zprofile"
+  echo "✅ nvm shell setup added to ~/.zprofile."
+else
+  echo "✅ nvm shell setup already present in ~/.zprofile."
+fi
+mkdir -p "$HOME/.nvm"
 
 # 6. Install LazyVim Starter Template
 #
