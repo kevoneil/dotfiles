@@ -34,6 +34,13 @@ return {
       end,
       desc = "Show Test Output",
     },
+    {
+      "<leader>ta",
+      function()
+        require("neotest").run.run(vim.fn.getcwd())
+      end,
+      desc = "Run All Tests in Project",
+    },
   },
   -- 2. Use 'opts' so LazyVim can safely merge your adapters and settings
   opts = function(_, opts)
