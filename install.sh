@@ -82,39 +82,45 @@ echo "⚡ Installing Neovim and foundational dependencies..."
 brew install neovim ripgrep fd git
 
 # 6. Install LazyVim Starter Template
-if [ ! -d "$HOME/.config/nvim" ]; then
+#
+# Safety: if ~/.config/nvim is already managed by this script (it contains
+# our MANAGED_BY_DOTFILES_INSTALL_SH marker), skip the backup+reclone
+# entirely — there's nothing destructive to do, it's already wired up.
+# Only back up and re-clone when nvim is missing or belongs to some other,
+# unmanaged config, and timestamp backups so re-runs never clobber a
+# previous backup.
+if [ -f "$HOME/.config/nvim/lua/config/lazy.lua" ] && grep -q "MANAGED_BY_DOTFILES_INSTALL_SH" "$HOME/.config/nvim/lua/config/lazy.lua"; then
+  echo "✅ ~/.config/nvim is already managed by this script. Skipping backup/reclone."
+elif [ ! -d "$HOME/.config/nvim" ]; then
   echo "🚀 Installing LazyVim starter template..."
   git clone https://github.com/LazyVim/starter "$HOME/.config/nvim"
   # Remove the .git folder so you can start your own git tracking later
   rm -rf "$HOME/.config/nvim/.git"
   echo "✅ LazyVim files cloned to ~/.config/nvim"
 else
-  echo "⚠️  ~/.config/nvim already exists. Backing it up before installing LazyVim..."
+  BACKUP_SUFFIX="bak.$(date +%Y%m%d%H%M%S)"
+  echo "⚠️  ~/.config/nvim already exists and isn't managed by this script."
+  echo "   Backing it up to *.${BACKUP_SUFFIX} before installing LazyVim..."
 
-  # Move old config directories to a .bak suffix just in case.
-  # Remove any pre-existing .bak first so re-running the script doesn't
-  # nest old backups inside new ones.
-  rm -rf "$HOME/.config/nvim.bak"
-  rm -rf "$HOME/.local/share/nvim.bak"
-  rm -rf "$HOME/.local/state/nvim.bak"
-  rm -rf "$HOME/.cache/nvim.bak"
-
-  mv "$HOME/.config/nvim" "$HOME/.config/nvim.bak" || true
-  mv "$HOME/.local/share/nvim" "$HOME/.local/share/nvim.bak" || true
-  mv "$HOME/.local/state/nvim" "$HOME/.local/state/nvim.bak" || true
-  mv "$HOME/.cache/nvim" "$HOME/.cache/nvim.bak" || true
+  mv "$HOME/.config/nvim" "$HOME/.config/nvim.${BACKUP_SUFFIX}" || true
+  [ -d "$HOME/.local/share/nvim" ] && mv "$HOME/.local/share/nvim" "$HOME/.local/share/nvim.${BACKUP_SUFFIX}"
+  [ -d "$HOME/.local/state/nvim" ] && mv "$HOME/.local/state/nvim" "$HOME/.local/state/nvim.${BACKUP_SUFFIX}"
+  [ -d "$HOME/.cache/nvim" ] && mv "$HOME/.cache/nvim" "$HOME/.cache/nvim.${BACKUP_SUFFIX}"
 
   echo "🚀 Installing LazyVim starter template..."
   git clone https://github.com/LazyVim/starter "$HOME/.config/nvim"
   rm -rf "$HOME/.config/nvim/.git"
-  echo "✅ Previous config backed up to *.bak and LazyVim installed."
+  echo "✅ Previous config backed up to *.${BACKUP_SUFFIX} and LazyVim installed."
 fi
 
-# 7. Copy custom Neovim plugin files from this repo into LazyVim's plugins folder
-echo "🔌 Copying custom plugin files to ~/.config/nvim/lua/plugins..."
-mkdir -p "$HOME/.config/nvim/lua/plugins"
-cp -f "$SCRIPT_DIR/.config/nvim/lua/plugins/"*.lua "$HOME/.config/nvim/lua/plugins/"
-echo "✅ Custom plugin files copied."
+# 7. Point LazyVim's plugin search directly at this repo's plugins folder
+# instead of copying files, so edits in the dotfiles checkout take effect
+# immediately without re-running this script.
+echo "🔌 Wiring LazyVim's plugin search to $SCRIPT_DIR/.config/nvim/lua/plugins..."
+mkdir -p "$HOME/.config/nvim/lua/config"
+sed "s|__DOTFILES_NVIM_DIR__|$SCRIPT_DIR/.config/nvim|g" \
+  "$SCRIPT_DIR/.config/nvim/lua/config/lazy.lua" >"$HOME/.config/nvim/lua/config/lazy.lua"
+echo "✅ LazyVim config now imports plugins from the dotfiles repo."
 
 echo "=========================================="
 echo "🎉 Setup complete! Please restart your terminal."
