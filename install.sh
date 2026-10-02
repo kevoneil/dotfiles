@@ -8,6 +8,19 @@ set -euo pipefail
 # copied regardless of where the dotfiles repo is checked out.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Refuse to run as root/sudo: Homebrew explicitly refuses to install or run
+# as root ("Running Homebrew as root is extremely dangerous and no longer
+# supported"), and installing Oh My Zsh / dotfiles as root would scatter
+# files owned by root into what should be your own home directory. This
+# script requests sudo itself (via `sudo -v` below) only for the one step
+# that actually needs it, so it should always be invoked as your normal user.
+if [ "$EUID" -eq 0 ]; then
+  echo "❌ Please do not run this script with sudo or as root."
+  echo "   Run it as your normal user instead: ./install.sh"
+  echo "   It will prompt for your password only when elevated privileges are needed."
+  exit 1
+fi
+
 echo "=========================================="
 echo " Starting Full macOS Dev Environment Setup"
 echo "=========================================="
