@@ -4,6 +4,10 @@
 # treat unset variables as errors, and fail pipelines on any stage error
 set -euo pipefail
 
+# Resolve the directory this script lives in, so plugin files can be
+# copied regardless of where the dotfiles repo is checked out.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 echo "=========================================="
 echo " Starting Full macOS Dev Environment Setup"
 echo "=========================================="
@@ -105,6 +109,12 @@ else
   rm -rf "$HOME/.config/nvim/.git"
   echo "✅ Previous config backed up to *.bak and LazyVim installed."
 fi
+
+# 7. Copy custom Neovim plugin files from this repo into LazyVim's plugins folder
+echo "🔌 Copying custom plugin files to ~/.config/nvim/lua/plugins..."
+mkdir -p "$HOME/.config/nvim/lua/plugins"
+cp -f "$SCRIPT_DIR/.config/nvim/lua/plugins/"*.lua "$HOME/.config/nvim/lua/plugins/"
+echo "✅ Custom plugin files copied."
 
 echo "=========================================="
 echo "🎉 Setup complete! Please restart your terminal."
