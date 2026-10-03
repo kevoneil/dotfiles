@@ -96,7 +96,8 @@ brew update
 echo "⚡ Installing Neovim and foundational dependencies..."
 # ripgrep, fd, and git are required for LazyVim's telescope fuzzy finding
 # lazygit: terminal UI for git, yazi: terminal file manager, nvm: Node version manager
-brew install neovim ripgrep fd git lazygit yazi nvm
+# gh: GitHub CLI, tmux: terminal multiplexer
+brew install neovim ripgrep fd git lazygit yazi nvm gh tmux
 
 # nvm (installed via Homebrew) isn't auto-wired into the shell like other
 # formulae — it needs NVM_DIR set and nvm.sh sourced manually.
