@@ -12,7 +12,7 @@ alias ...="cd ../.."
 alias path='echo -e ${PATH//:/\\n}'
 
 ## git
-alias ga="git add"
+alias ga="git add ."
 alias gs="git status"
 alias gb="git branch"
 alias gc="git commit -m"
